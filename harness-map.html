@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AI Coding Agent Harness Map</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2128;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --red: #f85149;
+    --yellow: #d29922;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 48px 64px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    font-size: 14px;
+  }
+  h1 { font-size: 24px; margin: 0 0 4px; font-weight: 600; letter-spacing: -0.3px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+  h3 { font-size: 13px; margin: 0 0 8px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); margin-bottom: 24px; font-size: 13px; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; background: var(--panel-2); padding: 1px 5px; border-radius: 3px; color: #e3b341; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+  .panel ul { margin: 0; padding-left: 18px; }
+  .panel li { margin-bottom: 4px; font-size: 13px; }
+
+  .frameworks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .fw { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+  .fw h3 { color: var(--purple); }
+  .fw .row-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .fw .row-item:last-child { border-bottom: none; }
+  .pill { font-size: 10.5px; padding: 1px 7px; border-radius: 10px; font-weight: 600; letter-spacing: 0.3px; }
+  .pill-ok { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .pill-weak { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .pill-gap { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+
+  .swimlane-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 32px; overflow-x: auto; }
+  .lane { display: grid; grid-template-columns: 120px repeat(6, 1fr); gap: 12px; align-items: stretch; margin-bottom: 12px; min-width: 1100px; }
+  .lane-label { background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 10px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; }
+  .step { background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; position: relative; }
+  .step h4 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text); }
+  .step .meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .step ul { margin: 4px 0 0; padding-left: 14px; }
+  .step li { font-size: 11.5px; margin-bottom: 2px; }
+  .step.have { border-left: 3px solid var(--green); }
+  .step.manual { border-left: 3px solid var(--blue); }
+  .step.weak { border-left: 3px solid var(--yellow); }
+  .step.gap { border: 1px dashed var(--red); background: rgba(248,81,73,0.05); }
+  .step.gap h4 { color: var(--red); }
+  .gap-tag { display: inline-block; font-size: 9.5px; font-weight: 700; background: var(--red); color: #fff; padding: 1px 5px; border-radius: 2px; vertical-align: middle; margin-left: 6px; letter-spacing: 0.4px; }
+
+  .header-row .step { background: transparent; border: none; padding: 4px 12px; text-align: center; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+  .header-row .lane-label { background: transparent; border: none; }
+
+  .gaps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+  .gap-card { background: var(--panel); border: 1px solid var(--red); border-radius: 6px; padding: 16px; }
+  .gap-card h3 { color: var(--red); margin-bottom: 10px; }
+  .gap-card h3 .num { background: var(--red); color: #fff; padding: 1px 8px; border-radius: 3px; font-size: 11px; margin-right: 8px; }
+  .gap-card dl { margin: 0; display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 12.5px; }
+  .gap-card dt { color: var(--muted); font-weight: 600; }
+  .gap-card dd { margin: 0; }
+  .gap-card .effort { font-size: 11px; color: var(--yellow); margin-top: 10px; font-weight: 600; }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 14px 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 28px; height: 4px; border-radius: 2px; }
+  .sw-have { background: var(--green); }
+  .sw-manual { background: var(--blue); }
+  .sw-weak { background: var(--yellow); }
+  .sw-gap { background: var(--red); height: 0; border-top: 2px dashed var(--red); }
+
+  .footnote { color: var(--muted); font-size: 11px; margin-top: 24px; text-align: center; }
+  .context-banner { background: linear-gradient(90deg, rgba(88,166,255,0.08), rgba(188,140,255,0.05)); border: 1px solid rgba(88,166,255,0.25); border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 12.5px; color: var(--muted); }
+  .context-banner strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<h1>AI Coding Agent Harness Map</h1>
+<div class="sub">Anonymized case study. Mapped against 3 industry frameworks (CNCF four pillars · five-layer harness · three loops) and 5 sources. Diagram shows a working setup, where it scores well, and where 4 real gaps land.</div>
+
+<div class="context-banner">
+  <strong>Context:</strong> extracted from a multi-tenant, RLS-based SaaS in active development. A small team plus Claude Code as the coding harness, ~11 specialist subagents, ~20 pre-commit + CI gates. Product, customer, and internal names are removed; the workflow structure is real.
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h3>Evidence base (5 sources, not 1)</h3>
+    <ul>
+      <li><a href="https://codagent.beehiiv.com/p/slot-machines-and-safety-nets">codagent.beehiiv — Slot Machines &amp; Safety Nets</a> · 3-loop framing</li>
+      <li><a href="https://www.faros.ai/blog/harness-engineering">Faros — Harness Engineering 2026</a> · 5-layer harness; CNCF 4-pillar mapping</li>
+      <li><a href="https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html">Fowler — Spec-Driven Development (Kiro / Spec Kit / Tessl)</a> · 3 SDD levels: spec-first / spec-anchored / spec-as-source</li>
+      <li><a href="https://docs.github.com/copilot/concepts/agents/coding-agent/about-coding-agent">GitHub Copilot cloud agent</a> + <a href="https://arxiv.org/abs/2603.03823">SWE-CI benchmark</a> · background agents + long-term maintenance</li>
+      <li><a href="https://github.com/alecnielsen/adversarial-review">alecnielsen/adversarial-review</a> + <a href="https://medium.com/@ribrewguy/what-i-found-when-claude-reviewed-codexs-work-5d83a348a2d9">Claude × Codex cross-review</a> · model-family blind spots are real (3 critical bugs found in Claude Code's own source)</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>Why look past any one article</h3>
+    <ul>
+      <li>The Beehiiv piece nails the 3-loop shape but undersells observability and background execution.</li>
+      <li>Faros / CNCF frame the same idea as platform engineering (golden paths + guardrails + safety nets + manual review). That lens caught the <strong>observability</strong> gap.</li>
+      <li>Spec-driven dev (Kiro / Tessl) is the strict version of a "spec-first" gate. Knowing the taxonomy stops you from over-investing — most projects need <em>spec-first</em>, not spec-as-source.</li>
+      <li>SWE-CI benchmark explicitly measures <em>codebase maintainability over 233 days</em>, not per-PR correctness. That validates the scheduled-cleanup direction.</li>
+      <li>Cross-model review has concrete evidence, not vibes — GPT found 3 bugs Claude missed when reviewing Claude Code's own source.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="frameworks">
+  <div class="fw">
+    <h3>CNCF four pillars</h3>
+    <div class="row-item"><span>Golden path</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Guardrails</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Safety nets</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Manual review</span><span class="pill pill-ok">strong</span></div>
+  </div>
+  <div class="fw">
+    <h3>Five-layer harness</h3>
+    <div class="row-item"><span>Tool orchestration</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Verification loops</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Context + memory</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Guardrails</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Observability</span><span class="pill pill-gap">GAP</span></div>
+  </div>
+  <div class="fw">
+    <h3>Three loops (Beehiiv)</h3>
+    <div class="row-item"><span>Outer · project</span><span class="pill pill-weak">strong + 1 gap</span></div>
+    <div class="row-item"><span>Orchestration · feature</span><span class="pill pill-ok">strong</span></div>
+    <div class="row-item"><span>Inner · task</span><span class="pill pill-weak">strong + 1 gap</span></div>
+  </div>
+</div>
+
+<h2>Workflow swimlane — where each control lives, and where the 4 gaps drop in</h2>
+
+<div class="swimlane-wrap">
+
+  <div class="lane header-row">
+    <div class="lane-label"></div>
+    <div class="step">1 · Intent</div>
+    <div class="step">2 · Epic</div>
+    <div class="step">3 · Story</div>
+    <div class="step">4 · Implement</div>
+    <div class="step">5 · Review</div>
+    <div class="step">6 · Ship</div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Outer<br/>project</div>
+    <div class="step have">
+      <h4>Invariants doc</h4>
+      <div class="meta">~10 inviolable rules</div>
+      <ul>
+        <li>SSOT discipline</li>
+        <li>RBAC, multi-tenant isolation, migration safety</li>
+      </ul>
+    </div>
+    <div class="step have">
+      <h4>Epic blueprint</h4>
+      <div class="meta">golden path</div>
+      <ul><li>scaffold skill writes folder + story stubs</li></ul>
+    </div>
+    <div class="step have">
+      <h4>Architecture docs</h4>
+      <div class="meta">progressive disclosure</div>
+      <ul><li>ADR sequence for locked decisions</li></ul>
+    </div>
+    <div class="step have">
+      <h4>Operational rules doc</h4>
+      <div class="meta">~19 rules + pre-commit + CI gates</div>
+      <ul>
+        <li>style, SQL-safety, and route-auth checks</li>
+        <li>bypass requires an audited written reason</li>
+      </ul>
+    </div>
+    <div class="step have">
+      <h4>Persistent feedback memory</h4>
+      <div class="meta">survives across sessions</div>
+      <ul><li>trust-based rules, backed by mechanized gates</li></ul>
+    </div>
+    <div class="step have">
+      <h4>Deployment pipeline doc</h4>
+      <div class="meta">migration order + manual production gate</div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Orch<br/>feature</div>
+    <div class="step manual">
+      <h4>Clarifying question gate</h4>
+      <div class="meta">brainstorm before scoping</div>
+    </div>
+    <div class="step have">
+      <h4>Epic dir + README + status</h4>
+      <div class="meta">diffable markdown artifacts</div>
+      <ul><li>decision-lock markers in the doc</li></ul>
+    </div>
+    <div class="step have">
+      <h4>Spec-first gate</h4>
+      <div class="meta">BLOCKING</div>
+      <ul>
+        <li>spec.md → confirm with user → STOP → implement</li>
+        <li>spec-time test evidence section</li>
+      </ul>
+    </div>
+    <div class="step have">
+      <h4>Specialist subagents</h4>
+      <div class="meta">auto-activation by file/keyword</div>
+      <ul><li>domain specialists: backend, frontend, data, security, QA, infra, docs, orchestration</li></ul>
+    </div>
+    <div class="step have">
+      <h4>Multi-expert epic review skill</h4>
+      <div class="meta">checks epic against arch docs + codebase</div>
+    </div>
+    <div class="step have">
+      <h4>Session-resume checkpoint</h4>
+      <div class="meta">status file = source of truth</div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Inner<br/>task</div>
+    <div class="step manual">
+      <h4>Phase isolation</h4>
+      <div class="meta">/clear between phases — fresh context</div>
+    </div>
+    <div class="step have">
+      <h4>Bug-fix verification loop</h4>
+      <div class="meta">reproduce-first discipline</div>
+      <ul>
+        <li>reproduce → root cause cite → fix</li>
+        <li>re-reproduce → regression test → adjacent grep</li>
+      </ul>
+    </div>
+    <div class="step have">
+      <h4>Cite-or-verify</h4>
+      <div class="meta">file:line read in same session, never recalled</div>
+    </div>
+    <div class="step have">
+      <h4>Pre-commit gates</h4>
+      <div class="meta">~5 wired commit-time</div>
+      <ul>
+        <li>schema-identifier checks, single-source-of-truth checks</li>
+        <li>doc-currency, decision-lock, and test-pairing checks</li>
+      </ul>
+    </div>
+    <div class="step have">
+      <h4>Acceptance-criteria verification skill</h4>
+      <div class="meta">evidence walk per criterion</div>
+    </div>
+    <div class="step have">
+      <h4>pre-push test gate + critical flow at 100%</h4>
+      <div class="meta">blocking on red</div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label" style="color: var(--red);">Observ.<br/>5th layer</div>
+    <div class="step weak">
+      <h4>git history + feedback memory</h4>
+      <div class="meta">human-readable trail</div>
+    </div>
+    <div class="step gap">
+      <h4>agent telemetry <span class="gap-tag">GAP 3</span></h4>
+      <ul>
+        <li>token cost / story</li>
+        <li>cycle time</li>
+        <li>bypass count / pattern</li>
+      </ul>
+    </div>
+    <div class="step gap">
+      <h4>agent telemetry <span class="gap-tag">GAP 3</span></h4>
+      <ul><li>per-story rework rate</li></ul>
+    </div>
+    <div class="step weak">
+      <h4>error monitoring (Sentry)</h4>
+      <div class="meta">runtime errors only — not agent metrics</div>
+    </div>
+    <div class="step gap">
+      <h4>reviewer signal <span class="gap-tag">GAP 3</span></h4>
+      <ul><li>Copilot findings → trend over time?</li></ul>
+    </div>
+    <div class="step weak">
+      <h4>debt ledger (markdown)</h4>
+      <div class="meta">manual — no auto-grading</div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label" style="color: var(--red);">Async<br/>scheduled</div>
+    <div class="step gap">
+      <h4>scheduled scans <span class="gap-tag">GAP 1</span></h4>
+      <ul>
+        <li>arch-doc drift sweep</li>
+        <li>SSOT regression</li>
+      </ul>
+    </div>
+    <div class="step gap">
+      <h4>quality grading <span class="gap-tag">GAP 1</span></h4>
+      <ul><li>debt ledger auto-prioritization</li></ul>
+    </div>
+    <div class="step weak">
+      <h4>SWE-CI pattern</h4>
+      <div class="meta">long-term maintenance benchmark direction</div>
+    </div>
+    <div class="step gap">
+      <h4>background draft PR <span class="gap-tag">GAP 4</span></h4>
+      <ul><li>Devin/Copilot-cloud style — for tagged low-risk debt only</li></ul>
+    </div>
+    <div class="step gap">
+      <h4>cross-model review <span class="gap-tag">GAP 2</span></h4>
+      <ul>
+        <li>Codex/GPT pass on billing &amp; RBAC paths only</li>
+        <li>different training distribution → different blind spots</li>
+      </ul>
+    </div>
+    <div class="step weak">
+      <h4>QA test round bot</h4>
+      <div class="meta">auto-issue on merge — not on a schedule</div>
+    </div>
+  </div>
+
+</div>
+
+<h2>The 4 real gaps — where each fits, what it does, what it costs</h2>
+
+<div class="gaps">
+
+  <div class="gap-card">
+    <h3><span class="num">GAP 1</span>Scheduled cleanup / drift agent</h3>
+    <dl>
+      <dt>Where it fits</dt><dd>Outer loop · async lane · nightly or weekly GitHub Action cron, not PR-driven.</dd>
+      <dt>What it does</dt><dd>Re-runs the multi-expert epic review across active epics; checks docs for drift; greps for known pattern regressions; opens a single <em>tracking issue</em> (not 19 PRs) per week with prioritized findings.</dd>
+      <dt>Why now</dt><dd>SWE-CI direction + Faros: per-PR correctness is mostly solved, codebase decay is the next frontier. The gates already exist — this agent runs them on a schedule against the whole repo, not the diff.</dd>
+      <dt>What it does <em>not</em> do</dt><dd>Does not open refactor PRs autonomously (too risky for billing/RBAC paths). Findings → tracking issue → human triages.</dd>
+      <dt>Existing primitive</dt><dd>Debt ledger + epic review skill. Both already exist; missing piece is the cron.</dd>
+    </dl>
+    <div class="effort">Effort: ~½ story (one workflow file + one tracking-issue template). Output: weekly debt report.</div>
+  </div>
+
+  <div class="gap-card">
+    <h3><span class="num">GAP 2</span>Cross-model reviewer on money / security paths</h3>
+    <dl>
+      <dt>Where it fits</dt><dd>Inner loop · review tier · gated to a security-critical subtree (money + tenant-isolation paths).</dd>
+      <dt>What it does</dt><dd>After the primary reviewer agent (Claude) passes, fire a non-Claude reviewer (Codex/GPT, or Copilot's review-with-different-model) on the same diff. Different training distribution → different blind spots. Evidence: GPT-5.4 caught 3 critical bugs in Claude Code's own source (return code logic, terminal injection, path double-application).</dd>
+      <dt>Why scoped</dt><dd>Cross-model review is expensive in tokens AND review cycle time, so it&rsquo;s reserved for the highest-stakes changes.</dd>
+      <dt>Existing primitive</dt><dd>Copilot already reviews PRs (different model family). Gap is making it <em>mandatory</em> on money paths and surfacing its findings into the merge gate.</dd>
+    </dl>
+    <div class="effort">Effort: ~½ story (1 workflow file + path-scoped check + merge gate). Trial Copilot's cross-review API before adding a 2nd vendor.</div>
+  </div>
+
+  <div class="gap-card">
+    <h3><span class="num">GAP 3</span>Agent observability — the 5th harness layer</h3>
+    <dl>
+      <dt>Where it fits</dt><dd>Cross-cutting · sidecar to every story. The Faros 5-layer model lists this explicitly; most setups have 4 of 5 strong and skip this one.</dd>
+      <dt>What it does</dt><dd>Capture per-story: token cost, wall-clock time, # of bypass uses, # of cross-model findings, rework rate (commits-to-merge), regression count post-merge. Surface as a monthly markdown report.</dd>
+      <dt>Why now</dt><dd>Without it you cannot tell whether the operational rules are <em>actually</em> reducing rework or just adding friction. Trust-based rules only work if you measure the cost of the trust.</dd>
+      <dt>Existing primitive</dt><dd>Bypass log + git history. Missing: aggregator.</dd>
+      <dt>Risk if skipped</dt><dd>Rules accrete forever, nobody knows which gates pay rent. Gate-fatigue is real once N rules accumulate.</dd>
+    </dl>
+    <div class="effort">Effort: 1 story. Defer until Gaps 1 + 2 land — observability is most valuable once there is <em>more</em> automation to measure.</div>
+  </div>
+
+  <div class="gap-card">
+    <h3><span class="num">GAP 4</span>Background draft-PR agent (Devin/Copilot-cloud style)</h3>
+    <dl>
+      <dt>Where it fits</dt><dd>Async lane · narrow scope: only items tagged <code>auto-safe</code> in the debt ledger (typos, dead-code deletes, dependency bumps with green CI, doc-only fixes).</dd>
+      <dt>What it does</dt><dd>GitHub Copilot cloud agent (or Devin) reads tagged debt items, opens draft PRs, runs CI. Human merges. No money, auth, or schema paths — ever.</dd>
+      <dt>Why later, not now</dt><dd>This is the riskiest gap. It is also the lowest-leverage until Gap 1 produces a clean prioritized backlog. Without Gap 1 there is nothing safe for Gap 4 to pick up.</dd>
+      <dt>Honest take</dt><dd>For a small team, Gap 4 is probably <strong>not worth it</strong>. Re-evaluate at a larger team and a launched product. Putting it on the map so you can deliberately say no to it.</dd>
+    </dl>
+    <div class="effort">Effort: large (2+ stories). Recommendation: park.</div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="swatch sw-have"></span> implemented + mechanical gate</div>
+  <div class="legend-item"><span class="swatch sw-manual"></span> implemented + human/skill-driven</div>
+  <div class="legend-item"><span class="swatch sw-weak"></span> partial / present but not in the role this layer needs</div>
+  <div class="legend-item"><span class="swatch sw-gap"></span> gap — not built</div>
+</div>
+
+<div class="footnote">
+  v1 · 2026-05-23 · single self-contained HTML · sources cited above · feedback welcome via GitHub Issues
+</div>
+
+</body>
+</html>
